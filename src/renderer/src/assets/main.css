@@ -1,0 +1,10 @@
+@import './base.css';
+
+@font-face {
+  font-family: 'poppins';
+  src: url('./Poppins-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'pacifico';
+  src: url('./Pacifico-Regular.ttf') format('truetype');
+}

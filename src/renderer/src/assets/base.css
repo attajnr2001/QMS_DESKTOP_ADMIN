@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+
+
+:root{
+  font-size: 85%;
+}
+
+body {
+  font-family: 'poppins', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  text-decoration: none;
+  font-family: 'poppins', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #163744;
+  color: #5f5f5f0c;
+  color: #333;
+}
