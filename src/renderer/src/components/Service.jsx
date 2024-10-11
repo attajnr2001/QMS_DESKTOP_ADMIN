@@ -20,18 +20,21 @@ import { Add, Search } from '@mui/icons-material'
 import { db, auth } from '../helpers/firebase' // Make sure this path is correct
 import { collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore'
 import AddServiceDialog from '../dialog/AddServiceDialog' // Import the new component
+import EditServiceDialog from '../dialog/EditServiceDialog' // Import the new component
 
 const Service = () => {
   const [services, setServices] = useState([])
   const [filteredServices, setFilteredServices] = useState([])
   const [openDialog, setOpenDialog] = useState(false)
+  const [openEditDialog, setOpenEditDialog] = useState(false)
+  const [selectedService, setSelectedService] = useState(null)
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   })
+  const [filterStatus, setFilterStatus] = useState('enabled')
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
 
   useEffect(() => {
     fetchServices()
@@ -87,6 +90,24 @@ const Service = () => {
       message,
       severity: newService ? 'success' : 'error'
     })
+  }
+
+  const handleEditService = (updatedService, message) => {
+    if (updatedService) {
+      setServices(
+        services.map((service) => (service.id === updatedService.id ? updatedService : service))
+      )
+    }
+    setSnackbar({
+      open: true,
+      message,
+      severity: updatedService ? 'success' : 'error'
+    })
+  }
+
+  const handleOpenEditDialog = (service) => {
+    setSelectedService(service)
+    setOpenEditDialog(true)
   }
 
   const handleCloseSnackbar = (event, reason) => {
@@ -190,7 +211,9 @@ const Service = () => {
                   />
                 </TableCell>
                 <TableCell align="center">
-                  <Button variant="outlined">Edit</Button>
+                  <Button variant="outlined" onClick={() => handleOpenEditDialog(service)}>
+                    Edit
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -201,6 +224,13 @@ const Service = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onAdd={handleAddService}
+      />
+      <EditServiceDialog
+        open={openEditDialog}
+        onClose={() => setOpenEditDialog(false)}
+        onEdit={handleEditService}
+        service={selectedService}
+        existingServices={services}
       />
       <Snackbar
         open={snackbar.open}
