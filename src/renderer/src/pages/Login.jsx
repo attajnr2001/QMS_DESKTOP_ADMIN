@@ -1,71 +1,55 @@
-import React, { useState, useContext } from 'react'
+import React, { useState } from 'react'
 import {
   Box,
   TextField,
   Button,
   Typography,
-  Link,
-  Avatar,
   Grid,
   Paper,
   Snackbar,
-  Alert
+  Alert,
+  Avatar
 } from '@mui/material'
-import { signInWithEmailAndPassword } from 'firebase/auth'
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
-import { auth, db } from '../helpers/firebase' // Make sure to import your Firebase config
 import { useNavigate } from 'react-router-dom'
-import { AuthContext } from '../context/AuthContext'
+import api from '../helpers/axios'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
-  const { dispatch } = useContext(AuthContext)
-
-  const addLogEntry = async (email, message, level) => {
-    try {
-      const logsRef = collection(db, 'logs')
-      await addDoc(logsRef, {
-        timestamp: serverTimestamp(),
-        message,
-        email,
-        level
-      })
-    } catch (error) {
-      console.error('Error adding log entry:', error)
-    }
-  }
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
 
     try {
-      // Authenticate with Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const user = userCredential.user
+      const response = await api.post('/users/login', {
+        email,
+        password
+      })
 
-      // Check if the email exists in the admins collection
-      const adminsRef = collection(db, 'admins')
-      const q = query(adminsRef, where('email', '==', email))
-      const querySnapshot = await getDocs(q)
+      // If login is successful
+      if (response.data.success) {
+        // Store user info in localStorage
+        localStorage.setItem('user', JSON.stringify(response.data.user))
 
-      if (querySnapshot.empty) {
-        setError('You are not authorized as an admin.')
-        await auth.signOut()
-        await addLogEntry(email, 'Unauthorized login attempt', 'WARNING')
-        return
+        // Navigate to admin dashboard
+        navigate('/admin/overview/today')
       }
-
-      // If everything is valid, update the AuthContext and navigate
-      dispatch({ type: 'LOGIN', payload: user })
-      await addLogEntry(email, 'Successful login', 'INFO')
-      navigate('/admin/overview/today')
     } catch (error) {
-      setError(error.message)
-      await addLogEntry(email, `Login failed: ${error.message}`, 'WARNING')
+      // Handle login errors
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        setError(error.response.data.error || 'Login failed')
+      } else if (error.request) {
+        // The request was made but no response was received
+        setError('No response from server. Please check your connection.')
+      } else {
+        setError('An unexpected error occurred')
+      }
+      console.error('Login error:', error)
     }
   }
 
